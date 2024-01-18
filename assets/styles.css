@@ -1,0 +1,75 @@
+#progressDialog {
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: white;
+    font-size: 80px;
+    outline: none;
+    border: none;
+}
+
+#cancelRender {
+    background-color: red;
+    border-radius: 9999px;
+    font-size: 30px;
+    padding: 10px;
+    padding-left: 35px;
+    padding-right: 35px;
+}
+
+.gif-captioner-btn {
+    position: absolute;
+    z-index: 4;
+    top: 0px;
+    left: 0px;
+    background-color: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 0px;
+}
+
+.caption-creator {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    color: white;
+}
+
+.settings {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.caption-input {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.font-size-slider {
+    width: 100px;
+}
+
+.caption-canvas {
+    border: 1px solid #000;
+    width: 100%;
+    border: none;
+    outline: none;
+}
+
+.caption-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    border: 2px solid black;
+}
+
+.caption-video {
+    width: 100%;
+}

@@ -1,0 +1,35 @@
+{
+  "name": "gifcaptioner",
+  "version": "0.1.0",
+  "description": "Allows you to add a caption to discord gifs",
+  "main": "src/main.ts",
+  "type": "module",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TheLazySquid/DiscordGifCaptioner"
+  },
+  "keywords": [
+    "gif",
+    "discord",
+    "betterdiscord"
+  ],
+  "author": "TheLazySquid",
+  "license": "MIT",
+  "dependencies": {
+    "@babel/preset-react": "^7.23.3",
+    "@rollup/plugin-babel": "^6.0.4",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@rollup/plugin-typescript": "^11.1.5",
+    "@types/betterdiscord": "github:zerthox/betterdiscord-types",
+    "@wemap/rollup-plugin-arraybuffer": "^0.1.2",
+    "lazypluginlib": "github:TheLazySquid/LazyPluginLib",
+    "rollup-plugin-string": "^3.0.0"
+  },
+  "devDependencies": {
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-polyfill-node": "^0.13.0"
+  }
+}

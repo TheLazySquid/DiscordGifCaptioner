@@ -1,0 +1,10 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "module": "ESNext",
+        "outDir": "build",
+        "strict": false,
+        "esModuleInterop": true,
+        "jsx": "react"
+    }
+}
