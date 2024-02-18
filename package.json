@@ -1,6 +1,6 @@
 {
   "name": "gifcaptioner",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Allows you to add a caption to discord gifs",
   "main": "src/main.ts",
   "type": "module",

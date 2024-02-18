@@ -7,8 +7,7 @@ import css from '../assets/styles.css'
 import CaptionBtnSVG from '../assets/page-layout-header.svg'
 import { getLines } from './util';
 import captionCreator from './captionCreator.jsx'
-
-import 'lazypluginlib/types.d.ts';
+import { watchElement, onStart, onStop } from 'lazypluginlib'
 
 let rendering: boolean = false
 let cloudUploader: any | undefined
@@ -16,7 +15,7 @@ let uploader: any | undefined
 let font: FontFace | undefined
 
 const gifSelector = "video[class^='gif']"
-watchElement(gifSelector, (gif: HTMLVideoElement) => {
+watchElement(gifSelector, (gif) => {
     if(gif.querySelector(".gif-captioner-btn")) return
     
     let captionBtn = document.createElement("button")
@@ -35,9 +34,8 @@ watchElement(gifSelector, (gif: HTMLVideoElement) => {
         let settings = {caption: '', fontSize: 35}
     
         const reactEl = BdApi.React.createElement(captionCreator, {
-            src: gif.src,
-            width: gif.videoWidth,
-            height: gif.videoHeight,
+            src: (gif as HTMLVideoElement).src,
+            width: (gif as HTMLVideoElement).videoWidth,
             onUpdate: (caption: string, fontSize: string) => {
                 settings.caption = caption
                 settings.fontSize = parseInt(fontSize)
@@ -47,7 +45,7 @@ watchElement(gifSelector, (gif: HTMLVideoElement) => {
         const onConfirm = () => {
             // close the GIF picker
             document.querySelector<HTMLButtonElement>("button[aria-label='Open GIF picker']")!.click()
-            renderGif(gif.src, settings.caption, settings.fontSize)
+            renderGif((gif as HTMLVideoElement).src, settings.caption, settings.fontSize)
         }
     
         BdApi.UI.showConfirmationModal("Add Caption", reactEl, {

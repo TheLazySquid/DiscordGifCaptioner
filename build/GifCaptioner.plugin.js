@@ -1,6 +1,6 @@
 /**
  * @name GifCaptioner
- * @version 0.1.0
+ * @version 0.1.1
  * @description Allows you to add a caption to discord gifs
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -42,11 +42,9 @@ module.exports = class {
                 return delCallback;
             }
         }
-        
+
         const onStart = createCallbackHandler("start");
         const onStop = createCallbackHandler("stop");
-        const onSwitch = createCallbackHandler("onSwitch");
-
         const watchElement = (selector, callback) => {
             let observer = new MutationObserver((mutations) => {
                 for (let mutation of mutations) {
@@ -66,7 +64,7 @@ module.exports = class {
                 }
             });
 
-            onStart(() => {
+            let startDispose = onStart(() => {
                 observer.observe(document.body, { childList: true, subtree: true });
 
                 for(let element of document.querySelectorAll(selector)) {
@@ -74,42 +72,18 @@ module.exports = class {
                 }
             });
 
-            onStop(() => {
+            let stopDispose = onStop(() => {
                 observer.disconnect();
             });
+
+            return () => {
+                observer.disconnect();
+                startDispose();
+                stopDispose();
+            }
         }
 
-        const setSettingsPanel = (el) => {
-            this.getSettingsPanel = () => el;
-        }
 'use strict';
-
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-/* global Reflect, Promise */
-
-
-function __awaiter(thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-}
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -594,9 +568,9 @@ function unwrapListeners(arr) {
 }
 
 var _polyfillNode_events = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    EventEmitter: EventEmitter,
-    default: EventEmitter
+	__proto__: null,
+	EventEmitter: EventEmitter,
+	default: EventEmitter
 });
 
 /* NeuQuant Neural-Net Quantization Algorithm
@@ -2194,15 +2168,14 @@ watchElement(gifSelector, (gif) => {
     captionBtn.classList.add("gif-captioner-btn");
     gif.before(captionBtn);
     BdApi.UI.createTooltip(captionBtn, "Add Custom Caption", {});
-    captionBtn.addEventListener('click', (e) => __awaiter(void 0, void 0, void 0, function* () {
+    captionBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         e.preventDefault();
-        yield loadFont();
+        await loadFont();
         let settings = { caption: '', fontSize: 35 };
         const reactEl = BdApi.React.createElement(CaptionCreator, {
             src: gif.src,
             width: gif.videoWidth,
-            height: gif.videoHeight,
             onUpdate: (caption, fontSize) => {
                 settings.caption = caption;
                 settings.fontSize = parseInt(fontSize);
@@ -2218,7 +2191,7 @@ watchElement(gifSelector, (gif) => {
             cancelText: 'Cancel',
             onConfirm
         });
-    }));
+    });
 });
 function getChannelId() {
     const channelID = location.href.split("/").pop();
@@ -2227,15 +2200,13 @@ function getChannelId() {
         return null;
     return channelID;
 }
-function loadFont() {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!font) {
-            font = new FontFace("futuraBoldCondensed", futura);
-            yield font.load();
-            // @ts-ignore Idk why typescript thinks .add doesn't exist
-            document.fonts.add(font);
-        }
-    });
+async function loadFont() {
+    if (!font) {
+        font = new FontFace("futuraBoldCondensed", futura);
+        await font.load();
+        // @ts-ignore Idk why typescript thinks .add doesn't exist
+        document.fonts.add(font);
+    }
 }
 function uploadFile(channelId, file) {
     // adapted from https://github.com/riolubruh/YABDP4Nitro/blob/main/YABDP4Nitro.plugin.js#L1151
@@ -2245,7 +2216,7 @@ function uploadFile(channelId, file) {
     if (!uploader) {
         uploader = BdApi.Webpack.getModule(module => module.default && module.default.uploadFiles).default;
     }
-    return new Promise((res) => __awaiter(this, void 0, void 0, function* () {
+    return new Promise(async (res) => {
         let fileUp = new cloudUploader.CloudUpload({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelId, false, 0);
         let uploadOptions = {
             channelId: channelId,
@@ -2254,118 +2225,116 @@ function uploadFile(channelId, file) {
             options: { stickerIds: [] },
             parsedMessage: { channelId: channelId, content: "", tts: false, invalidEmojis: [] }
         };
-        yield uploader.uploadFiles(uploadOptions);
+        await uploader.uploadFiles(uploadOptions);
         res();
-    }));
+    });
 }
-function renderGif(originalSrc, caption, fontSize) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (rendering)
-            return;
-        rendering = true;
-        const channel = getChannelId();
-        if (!channel)
-            return;
-        let progressDialog = document.createElement("dialog");
-        progressDialog.id = "progressDialog";
-        progressDialog.addEventListener("close", (e) => e.preventDefault());
-        progressDialog.innerHTML = `
+async function renderGif(originalSrc, caption, fontSize) {
+    if (rendering)
+        return;
+    rendering = true;
+    const channel = getChannelId();
+    if (!channel)
+        return;
+    let progressDialog = document.createElement("dialog");
+    progressDialog.id = "progressDialog";
+    progressDialog.addEventListener("close", (e) => e.preventDefault());
+    progressDialog.innerHTML = `
         <label for="renderProgress">Preparing...</label>
         <progress id="renderProgress" value="0" max="1"></progress> <br />
         <button id="cancelRender">Cancel</button>
     `;
-        let progress = progressDialog.querySelector("#renderProgress");
-        document.body.appendChild(progressDialog);
-        progressDialog.showModal();
-        let video = document.createElement("video");
-        video.src = originalSrc;
-        video.crossOrigin = "anonymous";
-        yield loadFont();
-        // wait for video to load
-        yield new Promise((res) => {
-            video.addEventListener('canplaythrough', res, { once: true });
-        });
-        // calculate how many frames are in the video
-        video.currentTime = 0;
-        video.playbackRate = 16;
-        video.play();
-        yield new Promise((res) => video.addEventListener('ended', res, { once: true }));
-        let quality = video.getVideoPlaybackQuality();
-        const frames = quality.totalVideoFrames;
-        console.log("Frames:", frames);
-        video.pause();
-        // yeah this is a bit of a mess
-        const padding = 10;
-        let renderCanvas = document.createElement("canvas"); // this could be an OffscreenCanvas but issues
-        renderCanvas.width = video.videoWidth;
-        let renderCtx = renderCanvas.getContext("2d");
-        renderCtx.font = `${fontSize}px futuraBoldCondensed`;
-        let lines = getLines(renderCtx, caption, renderCanvas.width);
-        renderCanvas.height = video.videoHeight + (lines.length * fontSize) + (padding * 2);
-        renderCtx.font = `${fontSize}px futuraBoldCondensed`;
-        renderCtx.textAlign = 'center';
-        renderCtx.textBaseline = 'top';
-        console.log("Rendering to", renderCanvas.width, "x", renderCanvas.height);
-        // scale down the gif to fit within the max size (needs work)
-        const maxSize = 24e6; // 24 MB
-        const estSize = frames * renderCanvas.width * renderCanvas.height;
-        console.log("Estimated size:", estSize);
-        const factor = Math.max(1, Math.sqrt(estSize / maxSize));
-        const newWidth = Math.floor(renderCanvas.width / factor);
-        const newHeight = Math.floor(renderCanvas.height / factor);
-        console.log("Scaling down by a factor of", factor, "to", newWidth, "x", newHeight);
-        let gif$1 = new gif({
-            quality: 10,
-            width: newWidth,
-            height: newHeight,
-        });
-        let aborted = false;
-        progressDialog.querySelector("#cancelRender").addEventListener("click", () => {
-            if (gif$1.running)
-                gif$1.abort();
-            aborted = true;
-            document.body.removeChild(progressDialog);
-        });
-        gif$1.on('progress', (e) => {
-            console.log("Rending progress:", e);
-            progress.value = e;
-        });
-        gif$1.on('finished', (blob) => {
-            rendering = false;
-            document.body.removeChild(progressDialog);
-            console.log("Final size:", blob.size);
-            let file = new File([blob], 'rendered.gif', { type: 'image/gif' });
-            uploadFile(channel, file);
-        });
-        let fps = frames / video.duration;
-        let scaledCanvas = document.createElement("canvas");
-        let scaledCtx = scaledCanvas.getContext("2d");
-        scaledCanvas.width = newWidth;
-        scaledCanvas.height = newHeight;
-        progressDialog.querySelector("label").innerHTML = "Rendering...";
-        renderCtx.fillStyle = "white";
-        renderCtx.fillRect(0, 0, renderCanvas.width, renderCanvas.height);
-        renderCtx.font = `${fontSize}px futuraBoldCondensed`;
-        renderCtx.fillStyle = "black";
-        for (let i = 0; i < lines.length; i++) {
-            renderCtx.fillText(lines[i], renderCanvas.width / 2, i * fontSize + padding);
-        }
-        const captionHeight = (lines.length * fontSize) + (padding * 2);
-        for (let frame = 0; frame < frames; frame++) {
-            if (aborted)
-                break;
-            video.currentTime = frame * 1 / fps + Number.MIN_VALUE;
-            yield new Promise((res) => video.addEventListener('seeked', res, { once: true }));
-            renderCtx.fillStyle = "white";
-            renderCtx.fillRect(0, captionHeight, renderCanvas.width, renderCanvas.height);
-            renderCtx.drawImage(video, 0, captionHeight);
-            scaledCtx.drawImage(renderCanvas, 0, 0, newWidth, newHeight);
-            gif$1.addFrame(scaledCtx, { delay: 1 / fps * 1000, copy: true });
-            progress.value = frame / frames;
-        }
-        progressDialog.querySelector("label").innerHTML = "Encoding...";
-        gif$1.render();
+    let progress = progressDialog.querySelector("#renderProgress");
+    document.body.appendChild(progressDialog);
+    progressDialog.showModal();
+    let video = document.createElement("video");
+    video.src = originalSrc;
+    video.crossOrigin = "anonymous";
+    await loadFont();
+    // wait for video to load
+    await new Promise((res) => {
+        video.addEventListener('canplaythrough', res, { once: true });
     });
+    // calculate how many frames are in the video
+    video.currentTime = 0;
+    video.playbackRate = 16;
+    video.play();
+    await new Promise((res) => video.addEventListener('ended', res, { once: true }));
+    let quality = video.getVideoPlaybackQuality();
+    const frames = quality.totalVideoFrames;
+    console.log("Frames:", frames);
+    video.pause();
+    // yeah this is a bit of a mess
+    const padding = 10;
+    let renderCanvas = document.createElement("canvas"); // this could be an OffscreenCanvas but issues
+    renderCanvas.width = video.videoWidth;
+    let renderCtx = renderCanvas.getContext("2d");
+    renderCtx.font = `${fontSize}px futuraBoldCondensed`;
+    let lines = getLines(renderCtx, caption, renderCanvas.width);
+    renderCanvas.height = video.videoHeight + (lines.length * fontSize) + (padding * 2);
+    renderCtx.font = `${fontSize}px futuraBoldCondensed`;
+    renderCtx.textAlign = 'center';
+    renderCtx.textBaseline = 'top';
+    console.log("Rendering to", renderCanvas.width, "x", renderCanvas.height);
+    // scale down the gif to fit within the max size (needs work)
+    const maxSize = 24e6; // 24 MB
+    const estSize = frames * renderCanvas.width * renderCanvas.height;
+    console.log("Estimated size:", estSize);
+    const factor = Math.max(1, Math.sqrt(estSize / maxSize));
+    const newWidth = Math.floor(renderCanvas.width / factor);
+    const newHeight = Math.floor(renderCanvas.height / factor);
+    console.log("Scaling down by a factor of", factor, "to", newWidth, "x", newHeight);
+    let gif$1 = new gif({
+        quality: 10,
+        width: newWidth,
+        height: newHeight,
+    });
+    let aborted = false;
+    progressDialog.querySelector("#cancelRender").addEventListener("click", () => {
+        if (gif$1.running)
+            gif$1.abort();
+        aborted = true;
+        document.body.removeChild(progressDialog);
+    });
+    gif$1.on('progress', (e) => {
+        console.log("Rending progress:", e);
+        progress.value = e;
+    });
+    gif$1.on('finished', (blob) => {
+        rendering = false;
+        document.body.removeChild(progressDialog);
+        console.log("Final size:", blob.size);
+        let file = new File([blob], 'rendered.gif', { type: 'image/gif' });
+        uploadFile(channel, file);
+    });
+    let fps = frames / video.duration;
+    let scaledCanvas = document.createElement("canvas");
+    let scaledCtx = scaledCanvas.getContext("2d");
+    scaledCanvas.width = newWidth;
+    scaledCanvas.height = newHeight;
+    progressDialog.querySelector("label").innerHTML = "Rendering...";
+    renderCtx.fillStyle = "white";
+    renderCtx.fillRect(0, 0, renderCanvas.width, renderCanvas.height);
+    renderCtx.font = `${fontSize}px futuraBoldCondensed`;
+    renderCtx.fillStyle = "black";
+    for (let i = 0; i < lines.length; i++) {
+        renderCtx.fillText(lines[i], renderCanvas.width / 2, i * fontSize + padding);
+    }
+    const captionHeight = (lines.length * fontSize) + (padding * 2);
+    for (let frame = 0; frame < frames; frame++) {
+        if (aborted)
+            break;
+        video.currentTime = frame * 1 / fps + Number.MIN_VALUE;
+        await new Promise((res) => video.addEventListener('seeked', res, { once: true }));
+        renderCtx.fillStyle = "white";
+        renderCtx.fillRect(0, captionHeight, renderCanvas.width, renderCanvas.height);
+        renderCtx.drawImage(video, 0, captionHeight);
+        scaledCtx.drawImage(renderCanvas, 0, 0, newWidth, newHeight);
+        gif$1.addFrame(scaledCtx, { delay: 1 / fps * 1000, copy: true });
+        progress.value = frame / frames;
+    }
+    progressDialog.querySelector("label").innerHTML = "Encoding...";
+    gif$1.render();
 }
 onStart(() => {
     BdApi.DOM.addStyle("gif-captioner-style", css);
@@ -2380,21 +2349,13 @@ onStop(() => {
 });
     }
 
-
     start() {
         for(let callback of this.startCallbacks) {
             callback.callback();
         }
     }
-    
     stop() {
         for(let callback of this.stopCallbacks) {
-            callback.callback();
-        }
-    }
-
-    onSwitch() {
-        for(let callback of this.onSwitchCallbacks) {
             callback.callback();
         }
     }

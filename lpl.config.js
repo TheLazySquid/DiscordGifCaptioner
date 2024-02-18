@@ -22,7 +22,10 @@ export default {
   plugins: [
     babel({ include: '**/*.jsx', babelHelpers: 'bundled' }),
     typescript({
-        jsx: 'react'
+      compilerOptions: {
+        target: 'es2022'
+      },
+      jsx: 'react'
     }),
     resolve(),
     commonjs(),
