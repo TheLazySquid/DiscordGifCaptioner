@@ -12,7 +12,6 @@ import { watchElement, onStart, onStop } from 'lazypluginlib'
 let rendering: boolean = false
 let cloudUploader: any | undefined
 let uploader: any | undefined
-let font: FontFace | undefined
 
 const gifSelector = "video[class^='gif']"
 watchElement(gifSelector, (gif) => {
@@ -28,9 +27,7 @@ watchElement(gifSelector, (gif) => {
     captionBtn.addEventListener('click', async (e) => {
         e.stopPropagation()
         e.preventDefault()
-    
-        await loadFont()
-    
+        
         let settings = {caption: '', fontSize: 35}
     
         const reactEl = BdApi.React.createElement(captionCreator, {
@@ -44,8 +41,8 @@ watchElement(gifSelector, (gif) => {
     
         const onConfirm = () => {
             // close the GIF picker
-            document.querySelector<HTMLButtonElement>("button[aria-label='Open GIF picker']")!.click()
             renderGif((gif as HTMLVideoElement).src, settings.caption, settings.fontSize)
+            document.querySelector<HTMLButtonElement>(".expression-picker-chat-input-button > button")?.click();
         }
     
         BdApi.UI.showConfirmationModal("Add Caption", reactEl, {
@@ -64,14 +61,15 @@ function getChannelId() {
     return channelID
 }
 
-async function loadFont() {
-    if(!font) {
-        font = new FontFace("futuraBoldCondensed", futura)
-        await font.load()
-        // @ts-ignore Idk why typescript thinks .add doesn't exist
-        document.fonts.add(font)
-    }
-}
+let font = new FontFace("futuraBoldCondensed", futura)
+
+onStart(() => {
+    document.fonts.add(font)
+})
+
+onStop(() => {
+    document.fonts.delete(font)
+})
 
 function uploadFile(channelId: string, file: File): Promise<void> {
     // adapted from https://github.com/riolubruh/YABDP4Nitro/blob/main/YABDP4Nitro.plugin.js#L1151
@@ -118,7 +116,6 @@ async function renderGif(originalSrc: string, caption: string, fontSize: number)
     let video = document.createElement("video")
     video.src = originalSrc
     video.crossOrigin = "anonymous"
-    await loadFont();
 
     // wait for video to load
     await new Promise((res) => {

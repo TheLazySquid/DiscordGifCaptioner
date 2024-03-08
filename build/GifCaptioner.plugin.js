@@ -1,6 +1,6 @@
 /**
  * @name GifCaptioner
- * @version 0.1.1
+ * @version 0.1.2
  * @description Allows you to add a caption to discord gifs
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -2158,7 +2158,6 @@ function CaptionCreator({
 let rendering = false;
 let cloudUploader;
 let uploader;
-let font;
 const gifSelector = "video[class^='gif']";
 watchElement(gifSelector, (gif) => {
     if (gif.querySelector(".gif-captioner-btn"))
@@ -2171,7 +2170,6 @@ watchElement(gifSelector, (gif) => {
     captionBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         e.preventDefault();
-        await loadFont();
         let settings = { caption: '', fontSize: 35 };
         const reactEl = BdApi.React.createElement(CaptionCreator, {
             src: gif.src,
@@ -2183,8 +2181,8 @@ watchElement(gifSelector, (gif) => {
         });
         const onConfirm = () => {
             // close the GIF picker
-            document.querySelector("button[aria-label='Open GIF picker']").click();
             renderGif(gif.src, settings.caption, settings.fontSize);
+            document.querySelector(".expression-picker-chat-input-button > button")?.click();
         };
         BdApi.UI.showConfirmationModal("Add Caption", reactEl, {
             confirmText: 'Upload',
@@ -2200,14 +2198,13 @@ function getChannelId() {
         return null;
     return channelID;
 }
-async function loadFont() {
-    if (!font) {
-        font = new FontFace("futuraBoldCondensed", futura);
-        await font.load();
-        // @ts-ignore Idk why typescript thinks .add doesn't exist
-        document.fonts.add(font);
-    }
-}
+let font = new FontFace("futuraBoldCondensed", futura);
+onStart(() => {
+    document.fonts.add(font);
+});
+onStop(() => {
+    document.fonts.delete(font);
+});
 function uploadFile(channelId, file) {
     // adapted from https://github.com/riolubruh/YABDP4Nitro/blob/main/YABDP4Nitro.plugin.js#L1151
     if (!cloudUploader) {
@@ -2250,7 +2247,6 @@ async function renderGif(originalSrc, caption, fontSize) {
     let video = document.createElement("video");
     video.src = originalSrc;
     video.crossOrigin = "anonymous";
-    await loadFont();
     // wait for video to load
     await new Promise((res) => {
         video.addEventListener('canplaythrough', res, { once: true });
