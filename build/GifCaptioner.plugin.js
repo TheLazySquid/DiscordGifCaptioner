@@ -1,6 +1,6 @@
 /**
  * @name GifCaptioner
- * @version 0.1.2
+ * @version 0.1.3
  * @description Allows you to add a caption to discord gifs
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -2156,8 +2156,6 @@ function CaptionCreator({
 }
 
 let rendering = false;
-let cloudUploader;
-let uploader;
 const gifSelector = "video[class^='gif']";
 watchElement(gifSelector, (gif) => {
     if (gif.querySelector(".gif-captioner-btn"))
@@ -2199,32 +2197,34 @@ function getChannelId() {
     return channelID;
 }
 let font = new FontFace("futuraBoldCondensed", futura);
+const imgAdder = BdApi.Webpack.getModule(module => module.default && module.default.addFile).default;
+const chatKeyHandlers = BdApi.Webpack.getModule((exports) => exports.default &&
+    exports.default?.toString?.().includes("hasOpenPlainTextCodeBlock"));
+let submitMessage;
 onStart(() => {
     document.fonts.add(font);
+    BdApi.Patcher.before("GifCaptioner", chatKeyHandlers, "default", (_, args) => {
+        submitMessage = args[0].submit;
+    });
 });
 onStop(() => {
     document.fonts.delete(font);
+    BdApi.Patcher.unpatchAll("GifCaptioner");
 });
 function uploadFile(channelId, file) {
-    // adapted from https://github.com/riolubruh/YABDP4Nitro/blob/main/YABDP4Nitro.plugin.js#L1151
-    if (!cloudUploader) {
-        cloudUploader = BdApi.Webpack.getModule(module => module.CloudUpload);
-    }
-    if (!uploader) {
-        uploader = BdApi.Webpack.getModule(module => module.default && module.default.uploadFiles).default;
-    }
-    return new Promise(async (res) => {
-        let fileUp = new cloudUploader.CloudUpload({ file: file, isClip: false, isThumbnail: false, platform: 1 }, channelId, false, 0);
-        let uploadOptions = {
-            channelId: channelId,
-            uploads: [fileUp],
-            draftType: 0,
-            options: { stickerIds: [] },
-            parsedMessage: { channelId: channelId, content: "", tts: false, invalidEmojis: [] }
-        };
-        await uploader.uploadFiles(uploadOptions);
-        res();
+    // add the GIF to the message
+    imgAdder.addFile({
+        channelId,
+        draftType: 0,
+        showLargeMessageDialog: false,
+        file: {
+            file,
+            isThumbnail: false,
+            platform: 1
+        }
     });
+    // send the message
+    submitMessage();
 }
 async function renderGif(originalSrc, caption, fontSize) {
     if (rendering)
