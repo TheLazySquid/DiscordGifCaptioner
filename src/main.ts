@@ -61,14 +61,14 @@ function getChannelId() {
 
 let font = new FontFace("futuraBoldCondensed", futura)
 
-const imgAdder = BdApi.Webpack.getModule(module => module.default && module.default.addFile).default;
-const chatKeyHandlers = BdApi.Webpack.getModule((exports) => exports.default &&
-    exports.default?.toString?.().includes("hasOpenPlainTextCodeBlock"));
+export const imgAdder: any = Object.values(BdApi.Webpack.getModule(module => Object.values<any>(module)?.[0]?.addFile))[0];
+export const chatKeyHandlers = BdApi.Webpack.getModule((exports) => Object.values<any>(exports)?.[0]?.
+    toString().includes("selectNextCommandOption"))
 let submitMessage: Function;
 
 onStart(() => {
     document.fonts.add(font)
-    BdApi.Patcher.before("GifCaptioner", chatKeyHandlers, "default", (_, args: any) => {
+    BdApi.Patcher.before("GifCaptioner", chatKeyHandlers, Object.keys(chatKeyHandlers)[0], (_, args: any) => {
         submitMessage = args[0].submit;
     })
 })

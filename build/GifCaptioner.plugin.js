@@ -1,6 +1,6 @@
 /**
  * @name GifCaptioner
- * @version 0.1.3
+ * @version 0.2.0
  * @description Allows you to add a caption to discord gifs
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -2197,13 +2197,13 @@ function getChannelId() {
     return channelID;
 }
 let font = new FontFace("futuraBoldCondensed", futura);
-const imgAdder = BdApi.Webpack.getModule(module => module.default && module.default.addFile).default;
-const chatKeyHandlers = BdApi.Webpack.getModule((exports) => exports.default &&
-    exports.default?.toString?.().includes("hasOpenPlainTextCodeBlock"));
+const imgAdder = Object.values(BdApi.Webpack.getModule(module => Object.values(module)?.[0]?.addFile))[0];
+const chatKeyHandlers = BdApi.Webpack.getModule((exports) => Object.values(exports)?.[0]?.
+    toString().includes("selectNextCommandOption"));
 let submitMessage;
 onStart(() => {
     document.fonts.add(font);
-    BdApi.Patcher.before("GifCaptioner", chatKeyHandlers, "default", (_, args) => {
+    BdApi.Patcher.before("GifCaptioner", chatKeyHandlers, Object.keys(chatKeyHandlers)[0], (_, args) => {
         submitMessage = args[0].submit;
     });
 });
@@ -2343,6 +2343,9 @@ onStop(() => {
         btn.remove();
     }
 });
+
+exports.chatKeyHandlers = chatKeyHandlers;
+exports.imgAdder = imgAdder;
     }
 
     start() {
