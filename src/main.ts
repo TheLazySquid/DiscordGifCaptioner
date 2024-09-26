@@ -27,9 +27,10 @@ watchElement(gifSelector, (gif) => {
         e.preventDefault()
         
         let settings = {caption: '', fontSize: 35}
+        let src = (gif as HTMLVideoElement).src
     
         const reactEl = BdApi.React.createElement(captionCreator, {
-            src: (gif as HTMLVideoElement).src,
+            src,
             width: (gif as HTMLVideoElement).videoWidth,
             onUpdate: (caption: string, fontSize: string) => {
                 settings.caption = caption
@@ -39,7 +40,7 @@ watchElement(gifSelector, (gif) => {
     
         const onConfirm = () => {
             // close the GIF picker
-            renderGif((gif as HTMLVideoElement).src, settings.caption, settings.fontSize)
+            renderGif(src, settings.caption, settings.fontSize)
             document.querySelector<HTMLButtonElement>(".expression-picker-chat-input-button > button")?.click();
         }
     
@@ -148,7 +149,7 @@ async function renderGif(originalSrc: string, caption: string, fontSize: number)
     console.log("Rendering to", renderCanvas.width, "x", renderCanvas.height)
 
     // scale down the gif to fit within the max size (needs work)
-    const maxSize = 24e6 // 24 MB
+    const maxSize = 10e6 // 10 MB
     const estSize = frames * renderCanvas.width * renderCanvas.height
 
     console.log("Estimated size:", estSize)

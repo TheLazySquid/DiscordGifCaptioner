@@ -1,6 +1,6 @@
 /**
  * @name GifCaptioner
- * @version 0.2.0
+ * @version 0.2.1
  * @description Allows you to add a caption to discord gifs
  * @author TheLazySquid
  * @authorId 619261917352951815
@@ -9,80 +9,6 @@
  */
 module.exports = class {
     constructor() {
-        const createCallbackHandler = (callbackName) => {
-            const fullName = callbackName + "Callbacks";
-            this[fullName] = [];
-            return (callback, once, id) => {
-                let object = { callback }
-
-                const delCallback = () => {
-                    this[fullName].splice(this[fullName].indexOf(object), 1);
-                }
-                
-                // if once is true delete it after use
-                if (once === true) {
-                    object.callback = () => {
-                        callback();
-                        delCallback();
-                    }
-                }
-
-                if(id) {
-                    object.id = id
-
-                    for(let i = 0; i < this[fullName].length; i++) {
-                        if(this[fullName][i].id === id) {
-                            this[fullName][i] = object;
-                            return delCallback;
-                        }
-                    }
-                }
-
-                this[fullName].push(object);
-                return delCallback;
-            }
-        }
-
-        const onStart = createCallbackHandler("start");
-        const onStop = createCallbackHandler("stop");
-        const watchElement = (selector, callback) => {
-            let observer = new MutationObserver((mutations) => {
-                for (let mutation of mutations) {
-                    if (mutation.addedNodes.length) {
-                        for (let node of mutation.addedNodes) {
-                            if (node.matches && node.matches(selector)) {
-                                callback(node);
-                            }
-
-                            if (node.querySelectorAll) {
-                                for (let element of node.querySelectorAll(selector)) {
-                                    callback(element);
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            let startDispose = onStart(() => {
-                observer.observe(document.body, { childList: true, subtree: true });
-
-                for(let element of document.querySelectorAll(selector)) {
-                    callback(element);
-                }
-            });
-
-            let stopDispose = onStop(() => {
-                observer.disconnect();
-            });
-
-            return () => {
-                observer.disconnect();
-                startDispose();
-                stopDispose();
-            }
-        }
-
 'use strict';
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -2155,6 +2081,105 @@ function CaptionCreator({
   })));
 }
 
+const createCallbackHandler = (callbackName) => {
+    const fullName = callbackName + "Callbacks";
+    this[fullName] = [];
+    this[callbackName] = () => {
+        for (let i = 0; i < this[fullName].length; i++) {
+            this[fullName][i].callback();
+        }
+    };
+    return (callback, once, id) => {
+        let object = { callback };
+        const delCallback = () => {
+            this[fullName].splice(this[fullName].indexOf(object), 1);
+        };
+        // if once is true delete it after use
+        if (once === true) {
+            object.callback = () => {
+                callback();
+                delCallback();
+            };
+        }
+        if (id) {
+            object.id = id;
+            for (let i = 0; i < this[fullName].length; i++) {
+                if (this[fullName][i].id === id) {
+                    this[fullName][i] = object;
+                    return delCallback;
+                }
+            }
+        }
+        this[fullName].push(object);
+        return delCallback;
+    };
+};
+/**
+ * Takes a callback and fires it when the plugin is started
+ * @param callback - The callback to be fired
+ * @param once - If true, the callback will be deleted after use
+ * @param id - The id of the callback - if it already exists, it will be replaced
+ * @returns A function to delete the callback
+ */
+const onStart = createCallbackHandler("start");
+/**
+ * Takes a callback and fires it when the plugin is stopped
+ * @param callback - The callback to be fired
+ * @param once - If true, the callback will be deleted after use
+ * @param id - The id of the callback - if it already exists, it will be replaced
+ * @returns A function to delete the callback
+ */
+const onStop = createCallbackHandler("stop");
+/**
+ * Takes a callback and fires it when the user navigates
+ * @param callback - The callback to be fired
+ * @param once - If true, the callback will be deleted after use
+ * @param id - The id of the callback - if it already exists, it will be replaced
+ * @returns A function to delete the callback
+ */
+createCallbackHandler("onSwitch");
+
+/**
+ * Watches for an element with a given selector to be added to the DOM
+ * @param selector The CSS selector to watch
+ * @param callback The callback to run whenever the matching element is added to the DOM
+ * @returns A function to stop watching
+ */
+function watchElement(selector, callback) {
+    let observer = new MutationObserver((mutations) => {
+        for (let mutation of mutations) {
+            if (mutation.addedNodes.length) {
+                for (let node of mutation.addedNodes) {
+                    if (!(node instanceof HTMLElement))
+                        continue;
+                    if (node.matches && node.matches(selector)) {
+                        callback(node);
+                    }
+                    if (node.querySelectorAll) {
+                        for (let element of node.querySelectorAll(selector)) {
+                            callback(element);
+                        }
+                    }
+                }
+            }
+        }
+    });
+    let startDispose = onStart(() => {
+        observer.observe(document.body, { childList: true, subtree: true });
+        for (let element of document.querySelectorAll(selector)) {
+            callback(element);
+        }
+    });
+    let stopDispose = onStop(() => {
+        observer.disconnect();
+    });
+    return () => {
+        observer.disconnect();
+        startDispose();
+        stopDispose();
+    };
+}
+
 let rendering = false;
 const gifSelector = "video[class^='gif']";
 watchElement(gifSelector, (gif) => {
@@ -2169,8 +2194,9 @@ watchElement(gifSelector, (gif) => {
         e.stopPropagation();
         e.preventDefault();
         let settings = { caption: '', fontSize: 35 };
+        let src = gif.src;
         const reactEl = BdApi.React.createElement(CaptionCreator, {
-            src: gif.src,
+            src,
             width: gif.videoWidth,
             onUpdate: (caption, fontSize) => {
                 settings.caption = caption;
@@ -2179,7 +2205,7 @@ watchElement(gifSelector, (gif) => {
         });
         const onConfirm = () => {
             // close the GIF picker
-            renderGif(gif.src, settings.caption, settings.fontSize);
+            renderGif(src, settings.caption, settings.fontSize);
             document.querySelector(".expression-picker-chat-input-button > button")?.click();
         };
         BdApi.UI.showConfirmationModal("Add Caption", reactEl, {
@@ -2273,7 +2299,7 @@ async function renderGif(originalSrc, caption, fontSize) {
     renderCtx.textBaseline = 'top';
     console.log("Rendering to", renderCanvas.width, "x", renderCanvas.height);
     // scale down the gif to fit within the max size (needs work)
-    const maxSize = 24e6; // 24 MB
+    const maxSize = 10e6; // 10 MB
     const estSize = frames * renderCanvas.width * renderCanvas.height;
     console.log("Estimated size:", estSize);
     const factor = Math.max(1, Math.sqrt(estSize / maxSize));
@@ -2346,16 +2372,5 @@ onStop(() => {
 
 exports.chatKeyHandlers = chatKeyHandlers;
 exports.imgAdder = imgAdder;
-    }
-
-    start() {
-        for(let callback of this.startCallbacks) {
-            callback.callback();
-        }
-    }
-    stop() {
-        for(let callback of this.stopCallbacks) {
-            callback.callback();
-        }
     }
 }
