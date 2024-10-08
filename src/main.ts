@@ -1,6 +1,6 @@
 import GIF from './gif.js/gif'
 // @ts-ignore
-import futura from '../assets/Futura Condensed Bold.otf';
+import futura from '../assets/Futura Condensed Extra Bold.otf';
 // @ts-ignore
 import css from '../assets/styles.css'
 // @ts-ignore
