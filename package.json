@@ -1,6 +1,6 @@
 {
   "name": "gifcaptioner",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "Allows you to add a caption to discord gifs",
   "main": "src/main.ts",
   "type": "module",
@@ -25,6 +25,7 @@
     "@rollup/plugin-typescript": "^11.1.5",
     "@types/betterdiscord": "github:zerthox/betterdiscord-types",
     "@wemap/rollup-plugin-arraybuffer": "^0.1.2",
+    "gifuct-js": "^2.1.2",
     "lazypluginlib": "github:TheLazySquid/LazyPluginLib",
     "rollup-plugin-string": "^3.0.0"
   },

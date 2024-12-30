@@ -15,7 +15,3 @@ To install, download the plugin [here](/build/GifCaptioner.plugin.js) and put it
 ## Quality
 
 The quality of captioned gifs will sometimes be a bit lower than the original. This is because tenor does not acutally use gifs, but rather looped MP4s. Converting to a gif will often result in a loss of quality.
-
-## Notes
-
-This only works with actual Tenor gifs- other gifs that you have favorited will not work.

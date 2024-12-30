@@ -3,7 +3,7 @@ import { getLines } from './util.ts';
 const React = BdApi.React;
 const { useState, useEffect, useRef } = React;
 
-export default function CaptionCreator({ src, width, onUpdate }) {
+export default function CaptionCreator({ src, width, onUpdate, isVideo }) {
     const padding = 10;
     const [caption, setCaption] = useState('');
     const [fontSize, setFontSize] = useState(35);
@@ -55,7 +55,8 @@ export default function CaptionCreator({ src, width, onUpdate }) {
             </div>
             <div className='caption-preview'>
                 <canvas className="caption-canvas" ref={canvasRef} width={width} height={padding * 2} />
-                <video className="caption-video" src={src} loop muted autoPlay />
+                { isVideo ? <video className="caption-gif" src={src} loop muted autoPlay /> :
+                <img className="caption-gif" src={src} />}
             </div>
         </div>
     );

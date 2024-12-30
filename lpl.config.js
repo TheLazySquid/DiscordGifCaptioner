@@ -5,8 +5,9 @@ import commonjs from 'rollup-plugin-commonjs';
 import arraybuffer from '@wemap/rollup-plugin-arraybuffer';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
 import { string } from 'rollup-plugin-string';
+import fs from 'fs';
 
-import pkg from './package.json' assert { type: "json" };
+const pkg = JSON.parse(fs.readFileSync('./package.json'));
 
 export default {
   input: "src/main.ts",
