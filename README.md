@@ -1,3 +1,6 @@
+> [!CAUTION]
+> This plugin has been moved to my [new plugin repository](https://github.com/TheLazySquid/BetterDiscordPlugins/tree/main/plugins/GifCaptioner). Changes will no longer be reflected here, and this repository may be removed in the future.
+
 # Discord Gif Captioner
 
 This is a [BetterDiscord](https://betterdiscord.app/) plugin that adds a way to add a custom caption to a tenor gif from directly within discord. Gifs inside the gif picker will have a new button at the top left that will open a dialog to create a custom caption.
